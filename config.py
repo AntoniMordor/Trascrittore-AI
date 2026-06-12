@@ -32,6 +32,10 @@ class ConfigTrascrizione:
     modello: str = "large-v3-turbo"
     compute_type: str = "int8"
     lingua: str = "it"
+    # beam_size: 1 = piu' VELOCE (greedy), 5 = qualita' massima ma piu' lento.
+    beam_size: int = 1
+    # cpu_threads: 0 = automatico (usa tutti i core del PC). Piu' core = piu' veloce.
+    cpu_threads: int = 0
 
 
 @dataclass
@@ -83,6 +87,8 @@ class Config:
             modello=sez_trascr.get("modello", "large-v3-turbo"),
             compute_type=sez_trascr.get("compute_type", "int8"),
             lingua=sez_trascr.get("lingua", "it"),
+            beam_size=int(sez_trascr.get("beam_size", 1)),
+            cpu_threads=int(sez_trascr.get("cpu_threads", 0)),
         )
 
         sez_riep = dati.get("riepilogo", {}) or {}

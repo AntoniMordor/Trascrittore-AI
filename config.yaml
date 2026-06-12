@@ -30,6 +30,15 @@ trascrizione:
   # Lingua della riunione. "it" = italiano (forzato).
   lingua: "it"
 
+  # VELOCITA' vs QUALITA':
+  #   beam_size: 1 = piu' VELOCE (consigliato su CPU); 5 = qualita' massima ma
+  #              circa il doppio piu' lento. Su audio pulito la differenza di
+  #              qualita' e' minima.
+  beam_size: 1
+
+  # Numero di core CPU da usare. 0 = automatico (tutti). Piu' core = piu' veloce.
+  cpu_threads: 0
+
 # ----------------------------- RIEPILOGO (AI) ------------------------------
 riepilogo:
   # Quale servizio AI usare per il riepilogo:

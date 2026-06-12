@@ -88,10 +88,15 @@ class FasterWhisperTranscriber(Transcriber):
         modello: str = "large-v3-turbo",
         compute_type: str = "int8",
         lingua: str = "it",
+        beam_size: int = 1,
+        cpu_threads: int = 0,
     ) -> None:
         self.nome_modello = modello
         self.compute_type = compute_type
         self.lingua = lingua
+        self.beam_size = max(1, int(beam_size))
+        # cpu_threads = 0 -> automatico: usiamo tutti i core logici del PC.
+        self.cpu_threads = int(cpu_threads) if cpu_threads and cpu_threads > 0 else (os.cpu_count() or 0)
         self._modello = None  # caricato "pigramente" alla prima trascrizione
 
     def _assicura_modello(self) -> None:
@@ -103,10 +108,12 @@ class FasterWhisperTranscriber(Transcriber):
         from faster_whisper import WhisperModel
 
         # device="cpu" perche' assumiamo nessuna GPU dedicata.
+        # cpu_threads: piu' core usiamo, piu' veloce e' la trascrizione.
         self._modello = WhisperModel(
             self.nome_modello,
             device="cpu",
             compute_type=self.compute_type,
+            cpu_threads=self.cpu_threads,
         )
 
     def trascrivi(
@@ -140,7 +147,7 @@ class FasterWhisperTranscriber(Transcriber):
             str(percorso_audio),
             language=self.lingua,
             vad_filter=True,
-            beam_size=5,
+            beam_size=self.beam_size,
             word_timestamps=True,
         )
 
@@ -222,6 +229,8 @@ def crea_transcriber(
     modello: str,
     compute_type: str,
     lingua: str,
+    beam_size: int = 1,
+    cpu_threads: int = 0,
 ) -> Transcriber:
     """
     "Fabbrica" che restituisce il trascrittore giusto in base al backend scelto
@@ -229,7 +238,13 @@ def crea_transcriber(
     aggiungere qui i backend cloud.
     """
     if backend == "faster_whisper":
-        return FasterWhisperTranscriber(modello=modello, compute_type=compute_type, lingua=lingua)
+        return FasterWhisperTranscriber(
+            modello=modello,
+            compute_type=compute_type,
+            lingua=lingua,
+            beam_size=beam_size,
+            cpu_threads=cpu_threads,
+        )
 
     raise ValueError(
         f"Backend di trascrizione non riconosciuto: '{backend}'. "

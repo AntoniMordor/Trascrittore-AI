@@ -152,6 +152,8 @@ def esegui_pipeline(
             modello=config.trascrizione.modello,
             compute_type=config.trascrizione.compute_type,
             lingua=config.trascrizione.lingua,
+            beam_size=config.trascrizione.beam_size,
+            cpu_threads=config.trascrizione.cpu_threads,
         )
 
         # Canale microfono -> "Io". Mappiamo l'avanzamento in 0.10 - 0.50.

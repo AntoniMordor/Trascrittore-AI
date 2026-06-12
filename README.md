@@ -152,6 +152,8 @@ Puoi modificare senza toccare il codice:
 | `trascrizione.modello` | qualità/velocità Whisper | `medium` (veloce), `large-v3-turbo` (default), `large-v3` (preciso) |
 | `trascrizione.compute_type` | leggerezza su CPU | `int8` (default), `int8_float16`, `float32` |
 | `trascrizione.lingua` | lingua della riunione | `it` |
+| `trascrizione.beam_size` | velocità vs qualità | `1` (veloce, default), `5` (qualità max, ~2× più lento) |
+| `trascrizione.cpu_threads` | core CPU usati | `0` (automatico, default), oppure un numero |
 | `riepilogo.backend` | servizio per il riepilogo AI | `nessuno` (solo trascrizione), `deepseek`, `claude` |
 | `riepilogo.modello_deepseek` | modello DeepSeek | `deepseek-reasoner` (potente), `deepseek-chat` (veloce) |
 | `riepilogo.modello_claude` | modello Claude | `claude-sonnet-4-6` |
@@ -163,8 +165,22 @@ Puoi modificare senza toccare il codice:
 > (`DEEPSEEK_API_KEY` o `ANTHROPIC_API_KEY`) e assicurati che l'account abbia
 > credito. DeepSeek richiede una piccola ricarica su https://platform.deepseek.com.
 
-> Su CPU senza GPU, se la trascrizione è troppo lenta passa il modello a
-> `medium`: è molto più rapido, con una precisione solo leggermente inferiore.
+### Quanto tempo richiede la trascrizione?
+
+La trascrizione gira su CPU (nessuna GPU) **dopo** lo Stop, in background. Tempi
+indicativi su un portatile moderno (es. Intel i5 di 12ª gen), con le
+impostazioni veloci di default (`beam_size: 1`):
+
+| Durata riunione | Attesa stimata per la trascrizione |
+|-----------------|------------------------------------|
+| 30 minuti | ~18-22 min |
+| 1 ora | ~35-45 min |
+
+> L'audio viene **salvato prima** della trascrizione: anche se chiudi tutto, la
+> registrazione non si perde. Per andare più veloce puoi usare il modello
+> `medium` (più rapido, qualità di poco inferiore). Per la **massima velocità**
+> (1 ora in 1-2 minuti) servirebbe una trascrizione su GPU/cloud: l'interfaccia
+> a plugin in `transcriber.py` è già pronta per aggiungerla in futuro.
 
 ---
 

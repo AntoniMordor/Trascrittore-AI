@@ -129,15 +129,19 @@ class FasterWhisperTranscriber(Transcriber):
             progresso(0.0, f"Trascrivo il canale '{parlante}'...")
 
         # faster-whisper:
-        #  - language=it       -> lingua forzata a italiano
-        #  - vad_filter=True   -> salta i silenzi (utile per riunioni lunghe e
-        #                         per non "inventare" testo nei silenzi)
+        #  - language=it          -> lingua forzata a italiano
+        #  - vad_filter=True      -> salta i silenzi (utile per riunioni lunghe)
+        #  - word_timestamps=True -> tempo di OGNI parola: ci serve per spezzare
+        #                            il parlato in frasi brevi con orario preciso,
+        #                            cosi' l'unione dei due canali risulta una
+        #                            conversazione realmente intrecciata.
         #  - il file viene letto a segmenti: NON carica tutto in RAM.
         segmenti_iter, info = self._modello.transcribe(
             str(percorso_audio),
             language=self.lingua,
             vad_filter=True,
             beam_size=5,
+            word_timestamps=True,
         )
 
         # Durata totale stimata: ci serve solo per la barra di avanzamento.
@@ -145,20 +149,8 @@ class FasterWhisperTranscriber(Transcriber):
 
         risultati: list[SegmentoTrascrizione] = []
         for seg in segmenti_iter:
-            testo = (seg.text or "").strip()
-            # Scartiamo i segmenti vuoti o fatti SOLO di punteggiatura/simboli
-            # (es. un "." isolato): di solito sono rumore o piccole
-            # "allucinazioni" di Whisper sui silenzi, non vero parlato.
-            if not any(carattere.isalnum() for carattere in testo):
-                continue
-            risultati.append(
-                SegmentoTrascrizione(
-                    inizio=float(seg.start),
-                    fine=float(seg.end),
-                    testo=testo,
-                    parlante=parlante,
-                )
-            )
+            # Spezziamo il segmento in frasi brevi usando i tempi delle parole.
+            risultati.extend(_spezza_in_frasi(seg, parlante))
             # Aggiorna l'avanzamento in base a quanto audio abbiamo coperto.
             if progresso and durata_totale > 0:
                 frazione = min(seg.end / durata_totale, 1.0)
@@ -168,6 +160,61 @@ class FasterWhisperTranscriber(Transcriber):
             progresso(1.0, f"Canale '{parlante}' completato.")
 
         return risultati
+
+
+def _e_spazzatura(testo: str) -> bool:
+    """True se il testo e' vuoto o fatto solo di punteggiatura/simboli/rumore."""
+    return not any(carattere.isalnum() for carattere in testo)
+
+
+def _spezza_in_frasi(segmento, parlante: str) -> list[SegmentoTrascrizione]:
+    """
+    Spezza un segmento di Whisper in FRASI BREVI usando i tempi delle singole
+    parole. Si apre una nuova frase quando:
+      - c'e' una pausa evidente tra due parole (> SOGLIA_PAUSA secondi), oppure
+      - la parola precedente chiude una frase (finisce con . ? ! ...).
+    Cosi' l'unione dei due canali (microfono e sistema) risulta una
+    conversazione realmente intrecciata nel tempo, e non due blocchi separati.
+    """
+    SOGLIA_PAUSA = 0.8  # secondi di silenzio tra parole per "andare a capo"
+
+    parole = getattr(segmento, "words", None)
+
+    # Sicurezza: se mancano i tempi parola-per-parola, usiamo il segmento intero.
+    if not parole:
+        testo = (segmento.text or "").strip()
+        if _e_spazzatura(testo):
+            return []
+        return [SegmentoTrascrizione(float(segmento.start), float(segmento.end), testo, parlante)]
+
+    frasi: list[SegmentoTrascrizione] = []
+    buffer: list = []  # parole della frase attualmente in costruzione
+
+    def _chiudi_frase() -> None:
+        if not buffer:
+            return
+        testo = "".join(p.word for p in buffer).strip()
+        if not _e_spazzatura(testo):
+            frasi.append(
+                SegmentoTrascrizione(
+                    inizio=float(buffer[0].start),
+                    fine=float(buffer[-1].end),
+                    testo=testo,
+                    parlante=parlante,
+                )
+            )
+
+    for parola in parole:
+        if buffer:
+            pausa = float(parola.start) - float(buffer[-1].end)
+            chiude_frase = buffer[-1].word.strip().endswith((".", "?", "!", "…"))
+            if pausa > SOGLIA_PAUSA or chiude_frase:
+                _chiudi_frase()
+                buffer = []
+        buffer.append(parola)
+    _chiudi_frase()
+
+    return frasi
 
 
 def crea_transcriber(

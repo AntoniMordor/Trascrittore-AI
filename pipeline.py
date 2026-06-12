@@ -71,15 +71,48 @@ def crea_cartella_riunione(cartella_base: Path) -> Path:
     return cartella
 
 
-def _scrivi_trascrizione_md(percorso: Path, segmenti: list[SegmentoTrascrizione]) -> None:
-    """Scrive la trascrizione integrale in Markdown, con timestamp e parlante."""
-    righe: list[str] = ["# Trascrizione della riunione", ""]
+def _blocco_segmenti(segmenti: list[SegmentoTrascrizione]) -> list[str]:
+    """Trasforma una lista di segmenti in righe Markdown con timestamp e parlante."""
     if not segmenti:
-        righe.append("_(Nessun parlato riconosciuto nei file audio.)_")
-    else:
-        for s in segmenti:
-            righe.append(f"**[{_formatta_tempo(s.inizio)}] {s.parlante}:** {s.testo}")
-            righe.append("")  # riga vuota per leggibilita'
+        return ["_(Nessun parlato riconosciuto.)_", ""]
+    righe: list[str] = []
+    for s in segmenti:
+        righe.append(f"**[{_formatta_tempo(s.inizio)}] {s.parlante}:** {s.testo}")
+        righe.append("")  # riga vuota per leggibilita'
+    return righe
+
+
+def _scrivi_trascrizione_md(percorso: Path, segmenti: list[SegmentoTrascrizione]) -> None:
+    """
+    Scrive la trascrizione in Markdown in TRE sezioni:
+      1) Conversazione (ordine cronologico reale) -> Io e Partecipanti intrecciati
+         nell'ordine in cui si e' parlato davvero (la parte piu' utile).
+      2) Solo Partecipanti -> tutto cio' che hanno detto gli altri, di seguito.
+      3) Solo Io           -> tutto cio' che ho detto io, di seguito.
+
+    'segmenti' arriva gia' ordinato cronologicamente.
+    """
+    solo_part = [s for s in segmenti if s.parlante == ETICHETTA_PARTECIPANTI]
+    solo_io = [s for s in segmenti if s.parlante == ETICHETTA_IO]
+
+    righe: list[str] = ["# Trascrizione della riunione", ""]
+
+    righe.append("## Conversazione (ordine cronologico reale)")
+    righe.append("")
+    righe.extend(_blocco_segmenti(segmenti))
+
+    righe.append("---")
+    righe.append("")
+    righe.append("## Solo Partecipanti")
+    righe.append("")
+    righe.extend(_blocco_segmenti(solo_part))
+
+    righe.append("---")
+    righe.append("")
+    righe.append("## Solo Io")
+    righe.append("")
+    righe.extend(_blocco_segmenti(solo_io))
+
     percorso.write_text("\n".join(righe), encoding="utf-8")
 
 

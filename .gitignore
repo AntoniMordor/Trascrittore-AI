@@ -1,0 +1,17 @@
+# Segreti: la chiave API non deve MAI finire su Git/GitHub.
+.env
+
+# Registrazioni e risultati delle riunioni.
+output/
+
+# Ambiente virtuale Python.
+.venv/
+venv/
+
+# Cache di Python.
+__pycache__/
+*.pyc
+
+# File interni degli strumenti / editor.
+.claude/
+.vscode/

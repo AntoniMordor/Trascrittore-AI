@@ -1,0 +1,51 @@
+# ===========================================================================
+# Configurazione di "Trascrittore AI"
+#
+# Puoi modificare questi valori senza toccare il codice.
+# Le righe che iniziano con "#" sono commenti e vengono ignorate.
+# ===========================================================================
+
+# Cartella dove vengono salvate le riunioni. Per ogni riunione viene creata
+# una sottocartella con data e ora (es. output/2026-06-12_15-30/).
+cartella_output: "output"
+
+# -------------------------- TRASCRIZIONE (Whisper) -------------------------
+trascrizione:
+  # Quale backend usare per trascrivere.
+  #   "faster_whisper" = locale, gratis, offline (CONSIGLIATO, privacy-first).
+  # In futuro qui potrai mettere un backend cloud (es. "assemblyai") senza
+  # cambiare il resto del programma.
+  backend: "faster_whisper"
+
+  # Modello Whisper. Bilancia velocità (su CPU) e accuratezza:
+  #   "medium"          -> piu' veloce, un filo meno preciso
+  #   "large-v3"        -> molto preciso ma lento su CPU
+  #   "large-v3-turbo"  -> ottimo compromesso (DEFAULT)
+  modello: "large-v3-turbo"
+
+  # Quantizzazione: "int8" e' la piu' leggera/veloce su CPU senza GPU.
+  # Alternative: "int8_float16", "float32" (piu' pesanti).
+  compute_type: "int8"
+
+  # Lingua della riunione. "it" = italiano (forzato).
+  lingua: "it"
+
+# ----------------------------- RIEPILOGO (AI) ------------------------------
+riepilogo:
+  # Quale servizio AI usare per il riepilogo:
+  #   "nessuno"  = NIENTE riepilogo, solo trascrizione (DEFAULT, gratis e offline)
+  #   "deepseek" = API DeepSeek (a pagamento, usa DEEPSEEK_API_KEY nel file .env)
+  #   "claude"   = API Anthropic/Claude (a pagamento, usa ANTHROPIC_API_KEY)
+  backend: "nessuno"
+
+  # Modello DeepSeek (usato se backend = "deepseek"):
+  #   "deepseek-reasoner" = il piu' POTENTE (DeepSeek-R1, "ragiona"); DEFAULT
+  #   "deepseek-chat"     = piu' veloce ed economico (DeepSeek-V3)
+  modello_deepseek: "deepseek-reasoner"
+
+  # Modello Claude (usato se backend = "claude"):
+  modello_claude: "claude-sonnet-4-6"
+
+  # Numero massimo di caratteri per ogni "blocco" quando la trascrizione e'
+  # molto lunga (strategia map-reduce, per non superare i limiti del modello).
+  caratteri_per_blocco: 12000

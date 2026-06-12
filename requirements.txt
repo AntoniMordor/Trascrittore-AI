@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# Dipendenze del progetto "Trascrittore AI"
+# Tutte scelte per essere compatibili con Windows 11 + Python 3.13 su CPU.
+# ---------------------------------------------------------------------------
+
+# Cattura audio con supporto WASAPI loopback (fork di PyAudio con wheel
+# precompilate per Python 3.13 su Windows). Ci permette di registrare sia il
+# microfono sia "ciò che si sente" dalle casse/cuffie.
+PyAudioWPatch==0.2.12.7
+
+# Calcolo numerico: ci serve per gestire i buffer audio e l'eventuale mixaggio.
+numpy>=1.26
+
+# Trascrizione locale (offline, gratis, privacy-first). Gira bene su CPU con
+# quantizzazione int8. NON richiede una GPU.
+faster-whisper>=1.0.3
+
+# SDK ufficiale per parlare con l'API di Claude (riepilogo AI, backend "claude").
+anthropic>=0.39
+
+# SDK OpenAI: usato per parlare con DeepSeek, la cui API e' compatibile con lo
+# standard OpenAI (riepilogo AI, backend "deepseek").
+openai>=1.40
+
+# Interfaccia grafica desktop (Qt per Python).
+PySide6>=6.6
+
+# Lettura del file .env (per la chiave API, che NON va mai nel codice).
+python-dotenv>=1.0
+
+# Lettura del file di configurazione config.yaml.
+PyYAML>=6.0

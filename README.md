@@ -58,7 +58,21 @@ all'avvio: assicurati di avere il diritto/consenso di registrare.
 
 ## Installazione (passo-passo)
 
-Apri **PowerShell** nella cartella del progetto ed esegui i comandi uno alla
+Servono **Python 3.13** e **Git** installati sul PC.
+
+### 0) Scarica il progetto (clona da GitHub)
+
+Apri **PowerShell** nella cartella dove vuoi mettere il progetto ed esegui:
+
+```powershell
+git clone https://github.com/AntoniMordor/Trascrittore-AI.git
+cd Trascrittore-AI
+```
+
+> In alternativa, dalla pagina GitHub: pulsante verde **Code → Download ZIP**,
+> poi estrai la cartella e apri PowerShell al suo interno.
+
+I comandi seguenti vanno eseguiti **dentro la cartella del progetto**, uno alla
 volta.
 
 ### 1) Crea un ambiente virtuale (consigliato)

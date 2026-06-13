@@ -17,7 +17,7 @@ trascrizione:
   #   "groq"           = CLOUD su GPU, VELOCISSIMO (1 ora ~1-2 min), ma INVIA
   #                      l'audio ai server di Groq (serve GROQ_API_KEY nel .env,
   #                      piano gratuito su https://console.groq.com).
-  backend: "faster_whisper"
+  backend: "groq"
 
   # Modello Whisper. Bilancia velocità (su CPU) e accuratezza:
   #   "medium"          -> piu' veloce, un filo meno preciso

@@ -28,14 +28,15 @@ lunghe su un PC con 16 GB e senza GPU.
 
 ## 🔒 Privacy
 
-- La **trascrizione è in locale** (modello Whisper sul tuo PC): l'audio **non
-  esce** dal computer.
-- Il **riepilogo** invece usa l'**API di Claude (Anthropic)**: per generarlo,
-  il *testo* della trascrizione viene inviato ai server di Anthropic. L'audio
-  no, solo il testo. Se non vuoi inviare nulla all'esterno, non configurare la
-  chiave API: otterrai comunque la trascrizione completa, senza il riepilogo.
-- ⚠️ In futuro, se sostituirai il backend di trascrizione con uno **cloud**,
-  l'**audio** verrebbe inviato a terzi: valutalo con attenzione.
+- La **trascrizione di default è in locale** (modello Whisper sul tuo PC):
+  l'audio **non esce** dal computer.
+- ⚠️ Se scegli il backend di trascrizione **`groq`** (cloud), l'**audio della
+  riunione viene inviato ai server di Groq** per essere trascritto più
+  velocemente: in quel caso NON è più tutto locale. Vedi la sezione
+  *"Locale vs Cloud"* più sotto.
+- Il **riepilogo** (opzionale) usa un'API esterna (DeepSeek o Claude): in quel
+  caso viene inviato il *testo* della trascrizione (non l'audio). Se non
+  configuri la chiave, ottieni comunque la trascrizione completa senza riepilogo.
 
 ---
 
@@ -149,7 +150,9 @@ Puoi modificare senza toccare il codice:
 | Voce | Cosa controlla | Valori utili |
 |------|----------------|--------------|
 | `cartella_output` | dove salvare le riunioni | es. `"output"` |
-| `trascrizione.modello` | qualità/velocità Whisper | `medium` (veloce), `large-v3-turbo` (default), `large-v3` (preciso) |
+| `trascrizione.backend` | dove trascrivere | `faster_whisper` (locale, default), `groq` (cloud veloce) |
+| `trascrizione.modello` | qualità/velocità Whisper (solo locale) | `medium` (veloce), `large-v3-turbo` (default), `large-v3` (preciso) |
+| `trascrizione.modello_groq` | modello Groq (solo cloud) | `whisper-large-v3` (default), `whisper-large-v3-turbo` |
 | `trascrizione.compute_type` | leggerezza su CPU | `int8` (default), `int8_float16`, `float32` |
 | `trascrizione.lingua` | lingua della riunione | `it` |
 | `trascrizione.beam_size` | velocità vs qualità | `1` (veloce, default), `5` (qualità max, ~2× più lento) |
@@ -177,10 +180,47 @@ impostazioni veloci di default (`beam_size: 1`):
 | 1 ora | ~35-45 min |
 
 > L'audio viene **salvato prima** della trascrizione: anche se chiudi tutto, la
-> registrazione non si perde. Per andare più veloce puoi usare il modello
-> `medium` (più rapido, qualità di poco inferiore). Per la **massima velocità**
-> (1 ora in 1-2 minuti) servirebbe una trascrizione su GPU/cloud: l'interfaccia
-> a plugin in `transcriber.py` è già pronta per aggiungerla in futuro.
+> registrazione non si perde.
+
+---
+
+## Locale vs Cloud (Groq): quale scegliere?
+
+Puoi trascrivere in due modi, scegliendo `trascrizione.backend` in `config.yaml`.
+
+### 🖥️ `faster_whisper` — Locale (default)
+
+**PRO**
+- 🔒 **Privacy totale**: l'audio non lascia mai il tuo PC.
+- 💸 **Gratis** e **offline** (nessuna connessione necessaria).
+- Nessun limite di utilizzo.
+
+**CONTRO**
+- 🐢 **Lento su CPU**: ~35-45 min per 1 ora di riunione.
+- Scarica un modello da ~1,6 GB la prima volta.
+
+### ☁️ `groq` — Cloud su GPU
+
+**PRO**
+- ⚡ **Velocissimo**: 1 ora di riunione trascritta in **~1-2 minuti**.
+- Qualità pari o superiore (`whisper-large-v3`).
+- Piano **gratuito** disponibile su https://console.groq.com.
+
+**CONTRO**
+- 🌐 **L'audio viene inviato ai server di Groq**: NON è più tutto locale.
+  Da valutare con attenzione per riunioni riservate/aziendali.
+- Richiede **connessione a Internet** e una chiave `GROQ_API_KEY` nel file `.env`.
+- Il piano gratuito ha **limiti di utilizzo** (quantità di audio per periodo).
+
+### Come passare al cloud Groq
+
+1. Crea una chiave gratuita su https://console.groq.com → *API Keys*.
+2. Mettila nel file `.env`:  `GROQ_API_KEY=gsk-...`
+3. In `config.yaml` imposta:  `backend: "groq"`
+4. Avvia normalmente. Per tornare al locale: `backend: "faster_whisper"`.
+
+> **Suggerimento d'uso**: tieni `faster_whisper` per le riunioni riservate
+> (privacy), e passa a `groq` quando hai fretta e l'audio non è sensibile.
 
 ---
 

@@ -154,6 +154,8 @@ def esegui_pipeline(
             lingua=config.trascrizione.lingua,
             beam_size=config.trascrizione.beam_size,
             cpu_threads=config.trascrizione.cpu_threads,
+            groq_api_key=config.groq_api_key,
+            modello_groq=config.trascrizione.modello_groq,
         )
 
         # Canale microfono -> "Io". Mappiamo l'avanzamento in 0.10 - 0.50.

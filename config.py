@@ -27,7 +27,7 @@ RADICE_PROGETTO = Path(__file__).resolve().parent
 
 @dataclass
 class ConfigTrascrizione:
-    """Impostazioni per la trascrizione (Whisper)."""
+    """Impostazioni per la trascrizione (Whisper locale o Groq cloud)."""
     backend: str = "faster_whisper"
     modello: str = "large-v3-turbo"
     compute_type: str = "int8"
@@ -36,6 +36,8 @@ class ConfigTrascrizione:
     beam_size: int = 1
     # cpu_threads: 0 = automatico (usa tutti i core del PC). Piu' core = piu' veloce.
     cpu_threads: int = 0
+    # Modello usato dal backend cloud "groq".
+    modello_groq: str = "whisper-large-v3"
 
 
 @dataclass
@@ -61,6 +63,7 @@ class Config:
     # Le chiavi API NON hanno un valore di default: se mancano, lo gestiamo a parte.
     anthropic_api_key: str | None = None
     deepseek_api_key: str | None = None
+    groq_api_key: str | None = None
 
     @staticmethod
     def carica(percorso_yaml: Path | None = None) -> "Config":
@@ -89,6 +92,7 @@ class Config:
             lingua=sez_trascr.get("lingua", "it"),
             beam_size=int(sez_trascr.get("beam_size", 1)),
             cpu_threads=int(sez_trascr.get("cpu_threads", 0)),
+            modello_groq=sez_trascr.get("modello_groq", "whisper-large-v3"),
         )
 
         sez_riep = dati.get("riepilogo", {}) or {}
@@ -112,6 +116,7 @@ class Config:
             riepilogo=riepilogo,
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
             deepseek_api_key=os.getenv("DEEPSEEK_API_KEY"),
+            groq_api_key=os.getenv("GROQ_API_KEY"),
         )
 
     def chiave_riepilogo_presente(self) -> bool:

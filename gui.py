@@ -25,6 +25,8 @@ from pathlib import Path
 from PySide6.QtCore import Qt, QThread, QTimer, Signal
 from PySide6.QtWidgets import (
     QApplication,
+    QComboBox,
+    QHBoxLayout,
     QLabel,
     QMessageBox,
     QProgressBar,
@@ -105,6 +107,21 @@ class FinestraPrincipale(QWidget):
         self.etichetta_rec.setStyleSheet("font-size: 22px; font-weight: bold;")
         layout.addWidget(self.etichetta_rec)
 
+        # Selettore del motore di trascrizione (Groq cloud vs Locale).
+        riga_backend = QHBoxLayout()
+        etichetta_backend = QLabel("Trascrizione:")
+        self.combo_backend = QComboBox()
+        # Il testo e' cio' che vede l'utente; il "dato" e' il valore tecnico.
+        self.combo_backend.addItem("☁ Groq (cloud, veloce)", "groq")
+        self.combo_backend.addItem("🖥 Locale (privato, lento)", "faster_whisper")
+        # Preseleziona il backend indicato nella configurazione (di default: groq).
+        indice = self.combo_backend.findData(self.config.trascrizione.backend)
+        if indice >= 0:
+            self.combo_backend.setCurrentIndex(indice)
+        riga_backend.addWidget(etichetta_backend)
+        riga_backend.addWidget(self.combo_backend, stretch=1)
+        layout.addLayout(riga_backend)
+
         # Grande pulsante Avvia / Stop.
         self.pulsante = QPushButton("● Avvia registrazione")
         self.pulsante.setMinimumHeight(64)
@@ -161,6 +178,8 @@ class FinestraPrincipale(QWidget):
         # Aggiorna lo stato dell'interfaccia.
         self._in_registrazione = True
         self._secondi_trascorsi = 0
+        # Blocchiamo la scelta del backend mentre si registra/elabora.
+        self.combo_backend.setEnabled(False)
         self.barra.setVisible(False)
         self.etichetta_stato.setText("Registrazione in corso (microfono + audio di sistema)...")
         self.pulsante.setText("■ Stop")
@@ -181,6 +200,9 @@ class FinestraPrincipale(QWidget):
         assert self._registratore is not None
         risultato_rec = self._registratore.ferma()
         self._registratore = None
+
+        # Applichiamo il backend di trascrizione scelto dall'utente nel menù.
+        self.config.trascrizione.backend = self.combo_backend.currentData()
 
         # Avvia il thread di elaborazione (trascrizione + riepilogo).
         self.barra.setVisible(True)
@@ -214,6 +236,7 @@ class FinestraPrincipale(QWidget):
         """Chiamata quando la pipeline ha finito: mostra l'esito e apre la cartella."""
         self.pulsante.setEnabled(True)
         self.pulsante.setText("● Avvia registrazione")
+        self.combo_backend.setEnabled(True)  # ri-abilita la scelta del backend
         self.barra.setValue(100)
 
         righe = [f"Risultati salvati in:\n{risultato.cartella}"]

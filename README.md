@@ -202,7 +202,8 @@ Puoi trascrivere in due modi, scegliendo `trascrizione.backend` in `config.yaml`
 ### ☁️ `groq` — Cloud su GPU
 
 **PRO**
-- ⚡ **Velocissimo**: 1 ora di riunione trascritta in **~1-2 minuti**.
+- ⚡ **Velocissimo**: 1 ora di riunione trascritta in **~2-5 minuti**
+  (dipende anche dalla tua velocità di upload).
 - Qualità pari o superiore (`whisper-large-v3`).
 - Piano **gratuito** disponibile su https://console.groq.com.
 
@@ -221,6 +222,22 @@ Puoi trascrivere in due modi, scegliendo `trascrizione.backend` in `config.yaml`
 
 > **Suggerimento d'uso**: tieni `faster_whisper` per le riunioni riservate
 > (privacy), e passa a `groq` quando hai fretta e l'audio non è sensibile.
+
+### 💰 Groq è gratuito? (limiti del piano free)
+
+Sì, Groq si usa **gratis** sul piano free, ma con alcune precisazioni:
+
+- ✅ **Nessun costo a sorpresa**: non vieni addebitato finché non aggiungi tu
+  un metodo di pagamento e passi a un piano a pagamento.
+- ⚠️ **Ci sono limiti d'uso** (rate limit): un tetto ai minuti di audio
+  trascrivibili per minuto/giorno. Se li superi, Groq **blocca
+  temporaneamente** le richieste (errore "limite raggiunto"), non ti fa pagare.
+- ⚠️ Limiti e prezzi **possono cambiare**: controlla i valori aggiornati sul tuo
+  pannello → **https://console.groq.com** (sezione *Settings → Limits* / *Billing*).
+
+**Se raggiungi un limite, non perdi nulla**: l'audio è già salvato su disco,
+l'app mostra un messaggio chiaro, e puoi riprovare più tardi oppure passare a
+`backend: faster_whisper` (locale, gratis e senza limiti, solo più lento).
 
 ---
 
